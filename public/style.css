@@ -79,7 +79,7 @@ border:3px solid white;
 /* nama siswa */
 .nama{
 position:absolute;
-top:80px;
+top:84px;
 left:100px;
 font-size:14px;
 font-weight:bold;
@@ -148,9 +148,9 @@ font-size:14px;
 .garisKartu{
 position:absolute;
 top:75px;
-left:30%;
+left:50%;
 transform:translateX(-50%);
-width:220px;
+width:320px;
 height:3px;
 background:#010101;
 border-radius:2px;
