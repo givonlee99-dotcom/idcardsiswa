@@ -99,12 +99,12 @@ button{
 /* nama siswa */
 .nama{
   position:absolute;
-  top:84px;
+  top:82px;
   left:95px;
   font-size:14px;
   font-weight:bold;
   color:#000;
-  max-width: 200px;
+  max-width: 280px;
   line-height: 1.1;
   text-align: left;
   word-break: break-word;
