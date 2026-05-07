@@ -286,7 +286,28 @@ button{
     font-size: 10px;
   }
 }
+/* HP / Android */
+@media (max-width: 480px){
 
+  body{
+    padding:10px;
+    margin:0;
+  }
+
+  .formBox{
+    width:100%;
+    margin:0 auto;
+    padding:15px;
+    border-radius:12px;
+  }
+
+  .card{
+    width:100%;
+    max-width:100%;
+    margin:15px auto;
+  }
+
+}
 @media (max-width: 380px) {
   .card{
     max-width: 300px;
