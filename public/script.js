@@ -164,13 +164,28 @@ async function downloadCard() {
 
 window.addEventListener("load", async () => {
   const params = new URLSearchParams(window.location.search);
+  const hash = window.location.hash || "";
+  const fromLinkvertise =
+    params.get("download") === "1" ||
+    params.get("hash") ||
+    hash.includes("download=1") ||
+    localStorage.getItem("afterLinkvertise") === "1";
 
-  if (params.get("download") === "1") {
+  if (fromLinkvertise) {
     const draft = loadDraft();
 
     if (draft) {
       fillFormFromDraft(draft);
+
+      const formBox = document.getElementById("formBox");
+      const previewBox = document.getElementById("preview");
+
+      if (formBox) formBox.style.display = "none";
+      if (previewBox) previewBox.style.display = "block";
+
       await previewCard(draft);
+
+      localStorage.removeItem("afterLinkvertise");
 
       setTimeout(() => {
         document.getElementById("card")?.scrollIntoView({
