@@ -100,11 +100,11 @@ button{
 .nama{
   position:absolute;
   top:84px;
-  left:100px;
+  left:95px;
   font-size:14px;
   font-weight:bold;
   color:#000;
-  max-width: 155px;
+  max-width: 175px;
   line-height: 1.1;
   text-align: left;
   word-break: break-word;
