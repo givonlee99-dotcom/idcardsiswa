@@ -12,15 +12,19 @@ function selectTemplate(img) {
   img.style.border = "3px solid red";
 }
 
+/* convert file -> base64 */
 function fileToDataURL(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
+
     reader.onload = (e) => resolve(e.target.result);
     reader.onerror = reject;
+
     reader.readAsDataURL(file);
   });
 }
 
+/* ambil data form */
 function getDraftFromForm() {
   return {
     sekolah: document.getElementById("sekolah").value,
@@ -33,6 +37,7 @@ function getDraftFromForm() {
   };
 }
 
+/* simpan draft + gambar */
 async function saveDraftWithImages() {
   const draft = getDraftFromForm();
 
@@ -48,11 +53,14 @@ async function saveDraftWithImages() {
   }
 
   localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+
   return draft;
 }
 
+/* load draft */
 function loadDraft() {
   const raw = localStorage.getItem(DRAFT_KEY);
+
   if (!raw) return null;
 
   try {
@@ -62,133 +70,201 @@ function loadDraft() {
   }
 }
 
+/* isi ulang form */
 function fillFormFromDraft(draft) {
-  document.getElementById("sekolah").value = draft.sekolah || "";
-  document.getElementById("alamat").value = draft.alamat || "";
-  document.getElementById("nama").value = draft.nama || "";
-  document.getElementById("nisn").value = draft.nisn || "";
-  document.getElementById("alamatSiswa").value = draft.alamatSiswa || "";
-  document.getElementById("masa").value = draft.masa || "";
+  document.getElementById("sekolah").value =
+    draft.sekolah || "";
+
+  document.getElementById("alamat").value =
+    draft.alamat || "";
+
+  document.getElementById("nama").value =
+    draft.nama || "";
+
+  document.getElementById("nisn").value =
+    draft.nisn || "";
+
+  document.getElementById("alamatSiswa").value =
+    draft.alamatSiswa || "";
+
+  document.getElementById("masa").value =
+    draft.masa || "";
 
   template = draft.template || "";
 }
 
 /* preview kartu */
 async function previewCard(draft = null) {
-  document.getElementById("preview").style.display = "block";
 
+  const preview = document.getElementById("preview");
+
+  preview.style.display = "block";
+
+  const data =
+    draft ||
+    loadDraft() || {
+      sekolah: "",
+      alamat: "",
+      nama: "",
+      nisn: "",
+      alamatSiswa: "",
+      masa: "",
+      template: "",
+      logo: "",
+      foto: "",
+    };
+
+  /* text */
   document.getElementById("sekolahCard").innerText =
-    document.getElementById("sekolah").value;
+    data.sekolah || "";
 
   document.getElementById("alamatCard").innerText =
-    document.getElementById("alamat").value;
+    data.alamat || "";
 
   document.getElementById("namaCard").innerText =
-    document.getElementById("nama").value;
+    data.nama || "";
 
   document.getElementById("nisnCard").innerText =
-    document.getElementById("nisn").value;
+    data.nisn || "";
 
   document.getElementById("alamatSiswaCard").innerText =
-    document.getElementById("alamatSiswa").value;
+    data.alamatSiswa || "";
 
   document.getElementById("masaCard").innerText =
-    "Berlaku Sampai : " + document.getElementById("masa").value;
+    "Berlaku Sampai : " + (data.masa || "");
 
-  /* pasang template */
-  if (template) {
-    document.getElementById("card").style.backgroundImage =
-      "url('" + template + "')";
-    document.getElementById("card").style.backgroundSize = "cover";
+  /* template */
+  const card = document.getElementById("card");
+
+  if (data.template) {
+    card.style.backgroundImage =
+      `url('${data.template}')`;
+
+    card.style.backgroundSize = "cover";
+    card.style.backgroundPosition = "center";
   }
 
-  /* QR CODE */
+  /* QR */
   document.getElementById("qrCard").innerHTML = "";
+
   new QRCode(document.getElementById("qrCard"), {
-    text: document.getElementById("nisn").value,
+    text: data.nisn || "",
     width: 60,
     height: 60,
   });
 
   /* logo */
-  const logoCard = document.getElementById("logoCard");
-  const logoFile = document.getElementById("logo").files[0];
+  const logoCard =
+    document.getElementById("logoCard");
 
-  if (draft && draft.logo) {
-    logoCard.src = draft.logo;
-  } else if (logoFile) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      logoCard.src = e.target.result;
-    };
-    reader.readAsDataURL(logoFile);
+  if (data.logo) {
+    logoCard.src = data.logo;
+  } else {
+    logoCard.removeAttribute("src");
   }
 
-  /* foto siswa */
-  const fotoCard = document.getElementById("fotoCard");
-  const fotoFile = document.getElementById("foto").files[0];
+  /* foto */
+  const fotoCard =
+    document.getElementById("fotoCard");
 
-  if (draft && draft.foto) {
-    fotoCard.src = draft.foto;
-  } else if (fotoFile) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      fotoCard.src = e.target.result;
-    };
-    reader.readAsDataURL(fotoFile);
+  if (data.foto) {
+    fotoCard.src = data.foto;
+  } else {
+    fotoCard.removeAttribute("src");
   }
+
+  /* scroll ke preview */
+  setTimeout(() => {
+    preview.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, 200);
 }
 
-/* download langsung */
+/* download */
 function downloadNow() {
-  html2canvas(document.getElementById("card")).then((canvas) => {
-    const link = document.createElement("a");
-    link.download = "kartu.png";
-    link.href = canvas.toDataURL("image/png");
+
+  const card =
+    document.getElementById("card");
+
+  html2canvas(card, {
+    useCORS: true,
+    backgroundColor: null,
+    scale: 2,
+  }).then((canvas) => {
+
+    const link =
+      document.createElement("a");
+
+    link.download = "kartu-pelajar.png";
+
+    link.href =
+      canvas.toDataURL("image/png");
+
     link.click();
   });
 }
 
 /* tombol download */
 async function downloadCard() {
+
   await saveDraftWithImages();
 
-  /* ganti dengan linkvertise kamu */
-  window.location.href = "https://link-hub.net/1314520/FXcWHggpmgCJ";
-
-  /* penting:
-     di dashboard Linkvertise, set DESTINATION / target URL ke:
-     https://domainkamu.com/?download=1
-  */
+  /* redirect ke linkvertise */
+  window.location.href =
+    "https://link-hub.net/1314520/FXcWHggpmgCJ";
 }
 
-/* saat balik dari Linkvertise */
+/* balik dari linkvertise */
 window.addEventListener("load", async () => {
-  const params = new URLSearchParams(window.location.search);
 
+  const params =
+    new URLSearchParams(window.location.search);
+
+  /* kalau datang dari linkvertise */
   if (params.get("download") === "1") {
+
     const draft = loadDraft();
 
     if (draft) {
 
-  // isi ulang form
-  fillFormFromDraft(draft);
+      /* isi ulang */
+      fillFormFromDraft(draft);
 
-  // generate ulang preview kartu
-  await previewCard();
+      /* sembunyikan form */
+      const formBox =
+        document.getElementById("formBox");
 
-  // tunggu render selesai
-  setTimeout(() => {
+      if (formBox) {
+        formBox.style.display = "none";
+      }
 
-    // scroll ke preview
-    document.getElementById("card")
-      ?.scrollIntoView({ behavior: "smooth" });
+      /* tampilkan preview */
+      const preview =
+        document.getElementById("preview");
 
-    // auto download
-    downloadNow();
+      if (preview) {
+        preview.style.display = "block";
+      }
 
-  }, 1500);
+      /* render ulang kartu */
+      await previewCard(draft);
 
+      /* tunggu render */
+      setTimeout(() => {
+
+        document
+          .getElementById("card")
+          ?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+
+        /* auto download */
+        downloadNow();
+
+      }, 1400);
     }
   }
 });
