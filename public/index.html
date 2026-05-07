@@ -1,188 +1,77 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="UTF-8" />
     <title>Buat Kartu Pelajar</title>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css" />
 
-    <style>
-      body {
-        font-family: Arial;
-        background-image: url("sekolah.jpeg");
-        background-size: cover;
-        background-position: center;
-        text-align: center;
-        padding: 20px;
-        margin: 0;
-      }
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
-      h2 {
-        color: white;
-      }
-
-      form {
-        background: white;
-        padding: 25px;
-        max-width: 420px;
-        width: 95%;
-        margin: auto;
-        border-radius: 10px;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-      }
-
-      input {
-        width: 95%;
-        padding: 10px;
-        margin: 8px 0;
-        box-sizing: border-box;
-      }
-
-      button {
-        background: #007bff;
-        color: white;
-        border: none;
-        padding: 12px;
-        width: 100%;
-        cursor: pointer;
-        border-radius: 6px;
-        font-size: 16px;
-      }
-
-      /* TEMPLATE */
-
-      .template-area {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin: 15px 0;
-      }
-
-      .template-area label {
-        cursor: pointer;
-      }
-
-      .template-area img {
-        width: 90px;
-        max-width: 100%;
-        border-radius: 6px;
-        border: 3px solid transparent;
-      }
-
-      .template-area input:checked + img {
-        border: 3px solid #007bff;
-      }
-
-      /* MOBILE */
-
-      @media (max-width: 480px) {
-        body {
-          padding: 10px;
-        }
-
-        form {
-          padding: 18px;
-        }
-
-        .template-area img {
-          width: 70px;
-        }
-
-        h2 {
-          font-size: 20px;
-        }
-      }
-    </style>
+    <!-- QR Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   </head>
 
   <body>
-    <h2>Buat Kartu Pelajar</h2>
+    <div class="formBox">
+      <h2>Pilih Template</h2>
 
-    <form action="/generate" method="POST" enctype="multipart/form-data">
-      <!-- =========================
-PILIH TEMPLATE
-========================= -->
-
-      <h3>Pilih Template</h3>
-
-      <div class="template-area">
-        <label>
-          <input
-            type="radio"
-            name="template"
-            value="kartu-template.png"
-            checked
-            hidden
-          />
-          <img src="/templates/kartu-template.png" />
-        </label>
-
-        <label>
-          <input
-            type="radio"
-            name="template"
-            value="kartu-template2.png"
-            hidden
-          />
-          <img src="/templates/kartu-template2.png" />
-        </label>
-
-        <label>
-          <input
-            type="radio"
-            name="template"
-            value="kartu-template3.png"
-            hidden
-          />
-          <img src="/templates/kartu-template3.png" />
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="template"
-            value="kartu-template4.png"
-            hidden
-          />
-          <img src="/templates/kartu-template4.png" />
-        </label>
+      <div class="template">
+        <img src="/assets/kartu-template.png" onclick="selectTemplate(this)" />
+        <img src="/assets/kartu-template2.png" onclick="selectTemplate(this)" />
+        <img src="/assets/kartu-template3.png" onclick="selectTemplate(this)" />
+        <img src="/assets/kartu-template4.png" onclick="selectTemplate(this)" />
       </div>
 
-      <hr />
-
-      <!-- =========================
-DATA SEKOLAH
-========================= -->
-
-      <input type="text" name="sekolah" placeholder="Nama Sekolah" required />
-
-      <input type="text" name="alamat" placeholder="Alamat Sekolah" required />
+      <input id="sekolah" placeholder="Nama Sekolah" />
+      <input id="alamat" placeholder="Alamat Sekolah" />
 
       <label>Logo Sekolah</label>
-      <input type="file" name="logo" required />
+      <input type="file" id="logo" />
 
       <hr />
 
-      <!-- =========================
-DATA SISWA
-========================= -->
-
-      <input type="text" name="nama" placeholder="Nama Siswa" required />
-
-      <input type="text" name="nisn" placeholder="NISN" required />
-
-      <input
-        type="text"
-        name="berlaku"
-        placeholder="Berlaku Sampai (07 / 2027)"
-        required
-      />
+      <input id="nama" placeholder="Nama Siswa" />
+      <input id="nisn" placeholder="NISN" />
+      <input id="alamatSiswa" placeholder="Alamat Siswa" />
+      <input id="masa" placeholder="Berlaku Sampai" />
 
       <label>Foto Siswa</label>
-      <input type="file" name="foto" required />
+      <input type="file" id="foto" />
 
-      <br /><br />
+      <button onclick="previewCard()">Preview Kartu</button>
+    </div>
 
-      <button type="submit">Preview Kartu</button>
-    </form>
+    <div class="preview" id="preview" style="display: none">
+      <div class="card" id="card">
+
+<img id="bg">
+
+<img id="logoCard" class="logo">
+
+<div id="sekolahCard" class="sekolah"></div>
+<div id="alamatCard" class="alamat"></div>
+
+<div class="judulKartu">KARTU PELAJAR</div>
+<div class="garisKartu"></div>
+
+<img id="fotoCard" class="foto">
+
+<div id="namaCard" class="nama"></div>
+<div id="nisnCard" class="nisn"></div>
+<div id="alamatSiswaCard" class="alamatSiswa"></div>
+<div id="masaCard" class="masa"></div>
+
+<div id="qrCard" class="qr"></div>
+
+</div>
+
+     
+      <button onclick="downloadCard()">
+Download Kartu Gratis
+</button>
+    </div>
+
+    <script src="script.js"></script>
   </body>
 </html>
