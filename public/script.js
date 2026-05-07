@@ -154,7 +154,7 @@ async function downloadCard() {
   await saveDraftWithImages();
 
   /* ganti dengan linkvertise kamu */
-  window.location.href = "https://linkvertise.com/ID_KAMU";
+  window.location.href = "https://link-hub.net/1314520/FXcWHggpmgCJ";
 
   /* penting:
      di dashboard Linkvertise, set DESTINATION / target URL ke:
