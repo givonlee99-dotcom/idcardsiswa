@@ -38,11 +38,13 @@
       <label for="foto">Foto Siswa</label>
       <input type="file" id="foto" accept="image/*" />
 
-      <button type="button" onclick="previewCard()">Preview Kartu</button>
+      <button type="button" onclick="handlePreview()">Preview Kartu</button>
     </div>
 
     <div class="preview" id="preview" style="display: none;">
       <div class="card" id="card">
+        <img id="bg" alt="" />
+
         <img id="logoCard" class="logo" alt="Logo Sekolah" />
 
         <div id="sekolahCard" class="sekolah"></div>
