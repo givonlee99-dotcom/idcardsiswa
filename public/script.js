@@ -170,12 +170,25 @@ window.addEventListener("load", async () => {
     const draft = loadDraft();
 
     if (draft) {
-      fillFormFromDraft(draft);
-      await previewCard(draft);
 
-      setTimeout(() => {
-        downloadNow();
-      }, 700);
+  // isi ulang form
+  fillFormFromDraft(draft);
+
+  // generate ulang preview kartu
+  await previewCard();
+
+  // tunggu render selesai
+  setTimeout(() => {
+
+    // scroll ke preview
+    document.getElementById("card")
+      ?.scrollIntoView({ behavior: "smooth" });
+
+    // auto download
+    downloadNow();
+
+  }, 1500);
+
     }
   }
 });
