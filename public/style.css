@@ -336,3 +336,34 @@ button{
     font-size: 12px;
   }
 }
+
+.accessDenied{
+  width:min(400px,94vw);
+  margin:40px auto;
+  background:white;
+  padding:25px;
+  border-radius:12px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.2);
+  text-align:center;
+}
+
+.accessDenied h2{
+  color:#d40000;
+  margin-bottom:10px;
+}
+
+.accessDenied p{
+  color:#333;
+  line-height:1.6;
+  margin-bottom:20px;
+}
+
+.waButton{
+  display:inline-block;
+  background:#25d366;
+  color:white;
+  text-decoration:none;
+  padding:12px 20px;
+  border-radius:8px;
+  font-weight:bold;
+}
