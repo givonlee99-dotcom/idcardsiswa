@@ -227,17 +227,22 @@ async function handlePreview() {
 }
 
 function downloadNow() {
-  const card = document.getElementById("card");
+  return new Promise((resolve, reject) => {
+    const card = document.getElementById("card");
 
-  html2canvas(card, {
-    useCORS: true,
-    backgroundColor: null,
-    scale: 2,
-  }).then((canvas) => {
-    const link = document.createElement("a");
-    link.download = "kartu-pelajar.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+    html2canvas(card, {
+      useCORS: true,
+      backgroundColor: null,
+      scale: 2,
+    })
+      .then((canvas) => {
+        const link = document.createElement("a");
+        link.download = "kartu-pelajar.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        resolve();
+      })
+      .catch(reject);
   });
 }
 
@@ -282,15 +287,20 @@ window.addEventListener("load", async () => {
 
         localStorage.removeItem("afterLinkvertise");
 
-        await markUse();
-
         setTimeout(() => {
-          document.getElementById("card")?.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
+          (async () => {
+            await downloadNow();
+            await markUse();
+            document.getElementById("card")?.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          })().catch((err) => {
+            showAccessDenied(
+              err.message ||
+                "Perangkat ini sudah dipakai user lain. Hubungi admin untuk reset."
+            );
           });
-
-          downloadNow();
         }, 1400);
       }
     } catch (err) {
