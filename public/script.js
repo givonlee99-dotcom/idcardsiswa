@@ -139,9 +139,10 @@ function showAccessDenied(message) {
 
   if (denied) denied.style.display = "block";
   if (deniedText) {
-    deniedText.innerHTML =
-      message +
-      `<br><br>Silakan hubungi admin di WhatsApp: <strong>082353730849</strong>`;
+   deniedText.innerHTML =
+  message +
+  `<br><br>Silakan hubungi admin di WhatsApp: <strong>082353730849</strong>` +
+  `<br><br><strong>ATAU BUAT DI PERANGKAT LAIN</strong>`;
   }
 }
 
