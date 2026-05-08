@@ -12,17 +12,12 @@ const LOCK_FILE = path.join(DB_DIR, "idcard-lock.json");
 app.use(cors());
 app.use(express.json());
 
-// Serve file frontend
+// frontend
 app.use(express.static(path.join(__dirname, "public")));
-
-// Assets masih di root project
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 
-// Pastikan folder DB ada
-if (!fs.existsSync(DB_DIR)) {
-  fs.mkdirSync(DB_DIR, { recursive: true });
-}
-
+// pastikan db ada
+if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
 if (!fs.existsSync(LOCK_FILE)) {
   fs.writeFileSync(LOCK_FILE, JSON.stringify({ devices: {} }, null, 2));
 }
@@ -35,6 +30,7 @@ function writeDB(data) {
   fs.writeFileSync(LOCK_FILE, JSON.stringify(data, null, 2));
 }
 
+// cek akses device
 app.get("/api/lock", (req, res) => {
   const deviceId = String(req.query.deviceId || "").trim();
 
@@ -50,29 +46,81 @@ app.get("/api/lock", (req, res) => {
 
   if (!db.devices[deviceId]) {
     db.devices[deviceId] = {
-      locked: true,
+      uses: 0,
       createdAt: now,
       updatedAt: now,
     };
+    writeDB(db);
+  }
 
+  const device = db.devices[deviceId];
+
+  if (device.uses >= 2) {
+    device.updatedAt = now;
     writeDB(db);
 
-    return res.json({
-      allowed: true,
-      message: "Perangkat baru berhasil didaftarkan.",
+    return res.status(403).json({
+      allowed: false,
+      message: "Perangkat ini sudah mencapai batas 2 kali. Hubungi admin.",
     });
   }
 
-  db.devices[deviceId].updatedAt = now;
+  device.updatedAt = now;
   writeDB(db);
 
   return res.json({
     allowed: true,
     message: "Akses perangkat valid.",
+    uses: device.uses,
   });
 });
 
-// Root buka halaman form
+// catat 1 kali download selesai
+app.post("/api/lock/use", (req, res) => {
+  const deviceId = String(req.body?.deviceId || "").trim();
+
+  if (!deviceId) {
+    return res.status(400).json({
+      ok: false,
+      message: "deviceId tidak ditemukan.",
+    });
+  }
+
+  const db = readDB();
+  const now = new Date().toISOString();
+
+  if (!db.devices[deviceId]) {
+    db.devices[deviceId] = {
+      uses: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
+
+  const device = db.devices[deviceId];
+
+  if (device.uses >= 2) {
+    device.updatedAt = now;
+    writeDB(db);
+
+    return res.status(403).json({
+      ok: false,
+      message: "Perangkat ini sudah mencapai batas 2 kali. Hubungi admin.",
+    });
+  }
+
+  device.uses += 1;
+  device.updatedAt = now;
+  writeDB(db);
+
+  return res.json({
+    ok: true,
+    uses: device.uses,
+    message: "Pemakaian berhasil dicatat.",
+  });
+});
+
+// root buka halaman form
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
