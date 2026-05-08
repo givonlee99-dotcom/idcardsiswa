@@ -1,7 +1,7 @@
 const DRAFT_KEY = "cardDraft";
 const DEVICE_KEY = "cardDeviceId";
 const API_BASE = "/api";
-const ADMIN_WA = "6282353730849";
+const ADMIN_WA = "6282354730849";
 
 let template = "";
 
@@ -141,7 +141,7 @@ function showAccessDenied(message) {
   if (deniedText) {
    deniedText.innerHTML =
   message +
-  `<br><br>Silakan hubungi admin di WhatsApp: <strong>082353730849</strong>` +
+  `<br><br>Silakan hubungi admin di WhatsApp: <strong>082354730849</strong>` +
   `<br><br><strong>ATAU BUAT DI PERANGKAT LAIN</strong>`;
   }
 }
