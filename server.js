@@ -1,7 +1,7 @@
-import express from "express";
-import fs from "fs";
-import path from "path";
-import cors from "cors";
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
+const cors = require("cors");
 
 const app = express();
 app.use(cors());
@@ -51,19 +51,17 @@ app.get("/api/lock", (req, res) => {
     });
   }
 
-  if (db.devices[deviceId].locked === false) {
-    db.devices[deviceId].locked = true;
-    db.devices[deviceId].updatedAt = now;
-    writeDB(db);
-  } else {
-    db.devices[deviceId].updatedAt = now;
-    writeDB(db);
-  }
+  db.devices[deviceId].updatedAt = now;
+  writeDB(db);
 
   return res.json({
     allowed: true,
     message: "Akses perangkat valid.",
   });
+});
+
+app.get("/", (req, res) => {
+  res.send("Server is running");
 });
 
 app.listen(PORT, () => {
