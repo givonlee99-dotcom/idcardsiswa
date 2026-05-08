@@ -1,5 +1,18 @@
 const DRAFT_KEY = "cardDraft";
+const DEVICE_KEY = "cardDeviceId";
+const API_BASE = "/api";
+const ADMIN_WA = "6282353730849";
+
 let template = "";
+
+function getDeviceId() {
+  let id = localStorage.getItem(DEVICE_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(DEVICE_KEY, id);
+  }
+  return id;
+}
 
 function selectTemplate(img) {
   template = img.src;
@@ -71,10 +84,53 @@ function fillFormFromDraft(draft) {
   template = draft.template || "";
 }
 
+async function checkAccess() {
+  const deviceId = getDeviceId();
+
+  const res = await fetch(
+    `${API_BASE}/lock?deviceId=${encodeURIComponent(deviceId)}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const data = await res.json();
+
+  if (!res.ok || !data.allowed) {
+    throw new Error(
+      data.message || "Perangkat ini tidak diizinkan. Hubungi admin."
+    );
+  }
+
+  return true;
+}
+
+function showAccessDenied(message) {
+  const formBox = document.getElementById("formBox");
+  const preview = document.getElementById("preview");
+  const denied = document.getElementById("accessDenied");
+  const deniedText = document.getElementById("accessDeniedText");
+
+  if (formBox) formBox.style.display = "none";
+  if (preview) preview.style.display = "none";
+
+  if (denied) denied.style.display = "block";
+  if (deniedText) {
+    deniedText.innerHTML =
+      message +
+      `<br><br>Silakan hubungi admin di WhatsApp: <strong>082353730849</strong>`;
+  }
+}
+
 async function previewCard(draft = null) {
   const preview = document.getElementById("preview");
   const formBox = document.getElementById("formBox");
+  const denied = document.getElementById("accessDenied");
 
+  if (denied) denied.style.display = "none";
   if (formBox) formBox.style.display = "none";
   preview.style.display = "block";
 
@@ -138,8 +194,16 @@ async function previewCard(draft = null) {
 }
 
 async function handlePreview() {
-  const draft = await saveDraftWithImages();
-  await previewCard(draft);
+  try {
+    await checkAccess();
+    const draft = await saveDraftWithImages();
+    await previewCard(draft);
+  } catch (err) {
+    showAccessDenied(
+      err.message ||
+        "Perangkat ini sudah dipakai user lain. Hubungi admin untuk reset."
+    );
+  }
 }
 
 function downloadNow() {
@@ -158,8 +222,16 @@ function downloadNow() {
 }
 
 async function downloadCard() {
-  await saveDraftWithImages();
-  window.location.href = "https://link-hub.net/1314520/FXcWHggpmgCJ";
+  try {
+    await checkAccess();
+    await saveDraftWithImages();
+    window.location.href = "https://link-hub.net/1314520/FXcWHggpmgCJ";
+  } catch (err) {
+    showAccessDenied(
+      err.message ||
+        "Perangkat ini sudah dipakai user lain. Hubungi admin untuk reset."
+    );
+  }
 }
 
 window.addEventListener("load", async () => {
@@ -172,29 +244,38 @@ window.addEventListener("load", async () => {
     localStorage.getItem("afterLinkvertise") === "1";
 
   if (fromLinkvertise) {
-    const draft = loadDraft();
+    try {
+      await checkAccess();
 
-    if (draft) {
-      fillFormFromDraft(draft);
+      const draft = loadDraft();
 
-      const formBox = document.getElementById("formBox");
-      const previewBox = document.getElementById("preview");
+      if (draft) {
+        fillFormFromDraft(draft);
 
-      if (formBox) formBox.style.display = "none";
-      if (previewBox) previewBox.style.display = "block";
+        const formBox = document.getElementById("formBox");
+        const previewBox = document.getElementById("preview");
 
-      await previewCard(draft);
+        if (formBox) formBox.style.display = "none";
+        if (previewBox) previewBox.style.display = "block";
 
-      localStorage.removeItem("afterLinkvertise");
+        await previewCard(draft);
 
-      setTimeout(() => {
-        document.getElementById("card")?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
+        localStorage.removeItem("afterLinkvertise");
 
-        downloadNow();
-      }, 1400);
+        setTimeout(() => {
+          document.getElementById("card")?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+
+          downloadNow();
+        }, 1400);
+      }
+    } catch (err) {
+      showAccessDenied(
+        err.message ||
+          "Perangkat ini sudah dipakai user lain. Hubungi admin untuk reset."
+      );
     }
   }
 });
