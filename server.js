@@ -4,13 +4,21 @@ const path = require("path");
 const cors = require("cors");
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
+const DB_DIR = path.join(__dirname, "db");
+const LOCK_FILE = path.join(DB_DIR, "idcard-lock.json");
+
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 3000;
-const DB_DIR = path.join(process.cwd(), "db");
-const LOCK_FILE = path.join(DB_DIR, "idcard-lock.json");
+// serve file dari public
+app.use(express.static(path.join(__dirname, "public")));
 
+// karena folder assets kamu masih di root project
+app.use("/assets", express.static(path.join(__dirname, "assets")));
+
+// pastikan db ada
 if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
 if (!fs.existsSync(LOCK_FILE)) {
   fs.writeFileSync(LOCK_FILE, JSON.stringify({ devices: {} }, null, 2));
@@ -60,8 +68,9 @@ app.get("/api/lock", (req, res) => {
   });
 });
 
+// root buka halaman form
 app.get("/", (req, res) => {
-  res.send("Server is running");
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(PORT, () => {
