@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 const DB_DIR = path.join(__dirname, "db");
 const LOCK_FILE = path.join(DB_DIR, "idcard-lock.json");
+const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 jam
 
 app.use(cors());
 app.use(express.json());
@@ -30,7 +31,39 @@ function writeDB(data) {
   fs.writeFileSync(LOCK_FILE, JSON.stringify(data, null, 2));
 }
 
-// cek akses device
+function ensureDevice(db, deviceId) {
+  const now = new Date().toISOString();
+
+  if (!db.devices[deviceId]) {
+    db.devices[deviceId] = {
+      uses: 0,
+      blockedUntil: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
+
+  return db.devices[deviceId];
+}
+
+function isCooldownActive(device) {
+  if (!device.blockedUntil) return false;
+  return new Date(device.blockedUntil).getTime() > Date.now();
+}
+
+function resetIfExpired(device) {
+  if (!device.blockedUntil) return false;
+
+  const blockedUntilTime = new Date(device.blockedUntil).getTime();
+  if (Date.now() >= blockedUntilTime) {
+    device.uses = 0;
+    device.blockedUntil = null;
+    return true;
+  }
+
+  return false;
+}
+
 app.get("/api/lock", (req, res) => {
   const deviceId = String(req.query.deviceId || "").trim();
 
@@ -42,26 +75,19 @@ app.get("/api/lock", (req, res) => {
   }
 
   const db = readDB();
+  const device = ensureDevice(db, deviceId);
   const now = new Date().toISOString();
 
-  if (!db.devices[deviceId]) {
-    db.devices[deviceId] = {
-      uses: 0,
-      createdAt: now,
-      updatedAt: now,
-    };
-    writeDB(db);
-  }
+  resetIfExpired(device);
 
-  const device = db.devices[deviceId];
-
-  if (device.uses >= 2) {
+  if (isCooldownActive(device)) {
     device.updatedAt = now;
     writeDB(db);
 
     return res.status(403).json({
       allowed: false,
-      message: "Perangkat ini sudah mencapai batas 2 kali. Hubungi admin.",
+      message: "Perangkat ini sedang cooldown 24 jam. Hubungi admin jika perlu reset.",
+      blockedUntil: device.blockedUntil,
     });
   }
 
@@ -72,10 +98,10 @@ app.get("/api/lock", (req, res) => {
     allowed: true,
     message: "Akses perangkat valid.",
     uses: device.uses,
+    blockedUntil: device.blockedUntil,
   });
 });
 
-// catat 1 kali download selesai
 app.post("/api/lock/use", (req, res) => {
   const deviceId = String(req.body?.deviceId || "").trim();
 
@@ -87,34 +113,44 @@ app.post("/api/lock/use", (req, res) => {
   }
 
   const db = readDB();
-  const now = new Date().toISOString();
+  const device = ensureDevice(db, deviceId);
+  const now = new Date();
 
-  if (!db.devices[deviceId]) {
-    db.devices[deviceId] = {
-      uses: 0,
-      createdAt: now,
-      updatedAt: now,
-    };
-  }
+  resetIfExpired(device);
 
-  const device = db.devices[deviceId];
-
-  if (device.uses >= 2) {
-    device.updatedAt = now;
+  if (isCooldownActive(device)) {
+    device.updatedAt = now.toISOString();
     writeDB(db);
 
     return res.status(403).json({
       ok: false,
-      message: "Perangkat ini sudah mencapai batas 2 kali. Hubungi admin.",
+      message: "Perangkat ini sedang cooldown 24 jam. Hubungi admin untuk reset.",
+      blockedUntil: device.blockedUntil,
     });
   }
 
   device.uses += 1;
-  device.updatedAt = now;
+  device.updatedAt = now.toISOString();
+
+  if (device.uses >= 2) {
+    const blockedUntil = new Date(now.getTime() + COOLDOWN_MS).toISOString();
+    device.blockedUntil = blockedUntil;
+    device.uses = 0; // reset supaya setelah 24 jam bisa pakai lagi dari awal
+    writeDB(db);
+
+    return res.json({
+      ok: true,
+      cooldown: true,
+      message: "Batas 2 kali tercapai. Akses dikunci 24 jam.",
+      blockedUntil,
+    });
+  }
+
   writeDB(db);
 
   return res.json({
     ok: true,
+    cooldown: false,
     uses: device.uses,
     message: "Pemakaian berhasil dicatat.",
   });
