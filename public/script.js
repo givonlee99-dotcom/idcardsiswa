@@ -108,6 +108,26 @@ async function checkAccess() {
   return true;
 }
 
+async function markUse() {
+  const deviceId = getDeviceId();
+
+  const res = await fetch(`${API_BASE}/lock/use`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ deviceId }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data.ok) {
+    throw new Error(data.message || "Batas penggunaan habis.");
+  }
+
+  return data;
+}
+
 function showAccessDenied(message) {
   const formBox = document.getElementById("formBox");
   const preview = document.getElementById("preview");
@@ -261,6 +281,8 @@ window.addEventListener("load", async () => {
         await previewCard(draft);
 
         localStorage.removeItem("afterLinkvertise");
+
+        await markUse();
 
         setTimeout(() => {
           document.getElementById("card")?.scrollIntoView({
