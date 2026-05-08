@@ -12,14 +12,17 @@ const LOCK_FILE = path.join(DB_DIR, "idcard-lock.json");
 app.use(cors());
 app.use(express.json());
 
-// serve file dari public
+// Serve file frontend
 app.use(express.static(path.join(__dirname, "public")));
 
-// karena folder assets kamu masih di root project
+// Assets masih di root project
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 
-// pastikan db ada
-if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+// Pastikan folder DB ada
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+}
+
 if (!fs.existsSync(LOCK_FILE)) {
   fs.writeFileSync(LOCK_FILE, JSON.stringify({ devices: {} }, null, 2));
 }
@@ -51,6 +54,7 @@ app.get("/api/lock", (req, res) => {
       createdAt: now,
       updatedAt: now,
     };
+
     writeDB(db);
 
     return res.json({
@@ -68,7 +72,7 @@ app.get("/api/lock", (req, res) => {
   });
 });
 
-// root buka halaman form
+// Root buka halaman form
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
